@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Unlimited QR Code Scanner</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
+    video { border: 1px solid #ccc; }
+    .result { padding: 5px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Unlimited QR Code Scanner (Camera Only)</h1>
+  <video id="video" width="320" height="240" autoplay></video>
+  <button id="snap">Scan QR</button>
+  <canvas id="canvas" hidden width="320" height="240"></canvas>
+  <div class="result" id="cameraResult"></div>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let streaming = false;
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          video.srcObject = stream;
+          streaming = true;
+        });
+    }
+    document.getElementById('snap').onclick = () => {
+      if (!streaming) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      document.getElementById('cameraResult').textContent = code ? code.data : 'QR code not found';
+    };
+  </script>
+</body>
+</html>
